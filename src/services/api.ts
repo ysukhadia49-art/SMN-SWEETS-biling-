@@ -50,6 +50,11 @@ class ApiService {
 
       return data;
     } catch (err: any) {
+      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+        const friendlyErr = new Error('Billing Server is offline. Please launch SMN_Sweets_Billing.bat on your Desktop to start Port 4000.');
+        console.error(`API Error [${endpoint}]:`, friendlyErr);
+        throw friendlyErr;
+      }
       console.error(`API Error [${endpoint}]:`, err);
       throw err;
     }

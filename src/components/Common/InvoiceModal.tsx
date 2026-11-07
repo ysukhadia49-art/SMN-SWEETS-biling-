@@ -49,7 +49,14 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
   };
 
   const handleDownload = () => {
-    window.location.href = `http://127.0.0.1:4000/api/bills/${bill.id}/pdf`;
+    const downloadUrl = `http://127.0.0.1:4000/api/bills/${bill.id}/pdf`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${bill.bill_number}.pdf`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleOpenWhatsAppWeb = () => {

@@ -31,7 +31,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLoginSuccess, lang }) 
       }
       onLoginSuccess(res.user);
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check credentials.');
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('offline')) {
+        setError('Billing Server is offline. Please launch SMN_Sweets_Billing.bat on your Desktop to start Port 4000.');
+      } else {
+        setError(err.message || 'Login failed. Please check credentials.');
+      }
     } finally {
       setLoading(false);
     }

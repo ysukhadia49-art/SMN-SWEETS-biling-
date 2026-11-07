@@ -172,14 +172,22 @@ app.get('/invoice/:token', (req, res) => {
   }
 });
 
-// Download PDF directly by bill ID
-app.get('/api/bills/:id/pdf', authenticate, (req, res) => {
+// Download PDF directly by bill ID (accessible for browser download & printing)
+app.get(['/api/bills/:id/pdf', '/api/bills/:id/download'], (req, res) => {
   const billId = req.params.id;
   const bill = db.prepare('SELECT * FROM bills WHERE id = ?').get(billId);
   if (!bill) return res.status(404).json({ error: 'Bill not found' });
 
+  const safeFilename = `${bill.bill_number || 'SMN-Invoice'}.pdf`;
+
   if (bill.pdf_path && fs.existsSync(bill.pdf_path)) {
-    res.download(bill.pdf_path, `${bill.bill_number}.pdf`);
+    res.download(bill.pdf_path, safeFilename, (err) => {
+      if (err && !res.headersSent) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+        fs.createReadStream(bill.pdf_path).pipe(res);
+      }
+    });
   } else {
     const fullBill = db.prepare('SELECT * FROM bills WHERE id = ?').get(bill.id);
     fullBill.items = db.prepare('SELECT * FROM bill_items WHERE bill_id = ?').all(bill.id);
@@ -188,9 +196,16 @@ app.get('/api/bills/:id/pdf', authenticate, (req, res) => {
     generateInvoicePDF(fullBill, settings, settings.default_pdf_format || 'format_a')
       .then((generatedPath) => {
         db.prepare('UPDATE bills SET pdf_path = ? WHERE id = ?').run(generatedPath, bill.id);
-        res.download(generatedPath, `${bill.bill_number}.pdf`);
+        res.download(generatedPath, safeFilename, (err) => {
+          if (err && !res.headersSent) {
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+            fs.createReadStream(generatedPath).pipe(res);
+          }
+        });
       })
       .catch((err) => {
+        console.error('[PDF Download Error]:', err);
         res.status(500).json({ error: 'Failed to generate PDF: ' + err.message });
       });
   }
