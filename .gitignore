@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+
+# Local databases & logs
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.log
+data/
+invoices/
+
+# Environment & credentials
+.env
+.env.local
+serviceAccountKey.json
+*.pem
+
+# Editor & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
