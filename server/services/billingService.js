@@ -139,6 +139,7 @@ async function createBill(billData, user, getSettingsFn) {
   const finalAmount = roundToTwo(subtotal - discountAmount);
   const amountMinor = toPaise(finalAmount);
   const paymentMethod = billData.payment_method || settings.default_payment_method || 'cash';
+  const billType = (billData.bill_type || 'retail').toLowerCase() === 'wholesale' ? 'wholesale' : 'retail';
   const splitDetails = billData.split_details ? JSON.stringify(billData.split_details) : null;
   const invoiceToken = 'smn_' + crypto.randomBytes(16).toString('hex');
   const billUuid = 'bill_' + crypto.randomBytes(16).toString('hex');
@@ -156,12 +157,12 @@ async function createBill(billData, user, getSettingsFn) {
         bill_uuid, shop_id, terminal_id, bill_number, customer_id, customer_name_snapshot, customer_mobile_snapshot,
         subtotal, discount_type, discount_value, discount_amount, final_amount, amount_minor,
         payment_method, split_details, payment_status, status,
-        cashier_id, cashier_name, invoice_token, sync_status
+        cashier_id, cashier_name, invoice_token, sync_status, bill_type
       ) VALUES (
         ?, 'smn_ahmedabad', 'term_01', ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?,
         ?, ?, 'paid', 'completed',
-        ?, ?, ?, 'saved_locally'
+        ?, ?, ?, 'saved_locally', ?
       )
     `);
 
@@ -181,7 +182,8 @@ async function createBill(billData, user, getSettingsFn) {
       splitDetails,
       user.id,
       user.full_name || user.username,
-      invoiceToken
+      invoiceToken,
+      billType
     );
 
     newBillId = billResult.lastInsertRowid;

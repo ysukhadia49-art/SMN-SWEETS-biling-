@@ -124,14 +124,18 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
                 onError={(e: any) => { e.target.style.display = 'none'; }}
               />
               <div>
-                <h2 className="font-serif font-bold text-xl text-smn-gold-soft">SMN SWEET'S</h2>
-                <p className="text-xs text-amber-200 font-gujarati">શુદ્ધતા અને સ્વાદની પરંપરા</p>
-                <p className="text-[11px] text-gray-300">Ahmedabad, Gujarat</p>
+                <h2 className="font-serif font-bold text-lg text-smn-gold-soft">Sukhadiya Manilal Nathalal</h2>
+                <p className="text-[11px] text-amber-200/90 font-gujarati">Since 1849 • શુદ્ધ ઘી ની મીઠાઈઓ અને કાજુની આઈટમ</p>
+                <p className="text-[10px] text-gray-300">માણેકચોક, અમદાવાદ | M: +91 8238773681</p>
               </div>
             </div>
             <div className="text-right">
-              <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-400 text-smn-brown">
-                Retail Invoice
+              <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase shadow-sm ${
+                bill.bill_type === 'wholesale' 
+                  ? 'bg-amber-500 text-white' 
+                  : 'bg-smn-gold text-smn-brown'
+              }`}>
+                {bill.bill_type === 'wholesale' ? 'Wholesale Invoice' : 'Retail Invoice'}
               </span>
               <p className="text-sm font-bold mt-1 text-white">{bill.bill_number}</p>
             </div>

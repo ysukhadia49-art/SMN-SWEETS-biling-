@@ -93,36 +93,57 @@ function generateCustomerInvoice(bill, settings, filePath, qrBuffer) {
     // Shop Title & Details in Header
     const textStartX = 145;
     doc.fillColor('#FFFFFF')
-       .fontSize(22)
+       .fontSize(20)
        .font('Helvetica-Bold')
-       .text(settings.shop_name || "SMN SWEET'S", textStartX, 48);
+       .text(settings.shop_name || "SMN SWEET'S", textStartX, 44);
 
     if (hasGujaratiFont) {
       doc.font('NotoGujarati')
-         .fontSize(12)
+         .fontSize(9.5)
          .fillColor('#FDE68A')
-         .text('શુદ્ધતા અને સ્વાદની પરંપરા - Since ' + (settings.est_year || '1849'), textStartX, 74);
+         .text('શુદ્ધતા અને સ્વાદની પરંપરા - Since ' + (settings.est_year || '1849'), textStartX, 68);
+
+      doc.font('NotoGujarati')
+         .fontSize(7.5)
+         .fillColor('#F3F4F6')
+         .text(settings.shop_address || 'દુકાન નં.: ૯, ૧૦, ૧૫, કંડોઈ ઓળ, માણેકચોક, અમદાવાદ | વર્કશોપ: ૨૮૫, નાગોરીશાળા, રતનપોળ, અમદાવાદ', textStartX, 82, { width: 280, lineGap: 1 });
+
+      doc.font('Helvetica')
+         .fontSize(8.5)
+         .fillColor('#F3F4F6')
+         .text(`Mobile: ${settings.shop_mobile || '+91 8238773681'} | WhatsApp: ${settings.shop_whatsapp || '+91 8238773681'}`, textStartX, 116);
+    } else {
+      doc.font('Helvetica')
+         .fontSize(8.5)
+         .fillColor('#F3F4F6')
+         .text(settings.shop_address || 'Shop No. 9, 10, 15, Kandoi Ol, Manek Chowk, Ahmedabad', textStartX, 84, { width: 280 })
+         .text(`Mobile: ${settings.shop_mobile || ''} | WhatsApp: ${settings.shop_whatsapp || ''}`, textStartX, 114);
     }
 
-    doc.font('Helvetica')
-       .fontSize(9)
-       .fillColor('#F3F4F6')
-       .text(settings.shop_address || 'Opp. Town Hall, Station Road, Ahmedabad, Gujarat', textStartX, 92, { width: 280 })
-       .text(`Mobile: ${settings.shop_mobile || ''} | WhatsApp: ${settings.shop_whatsapp || ''}`, textStartX, 114);
-
     // Right-aligned INVOICE box inside banner
-    doc.rect(435, 46, 114, 85).fill(darkMaroon);
-    doc.rect(435, 46, 114, 85).strokeColor(goldColor).lineWidth(1).stroke();
+    doc.rect(435, 44, 114, 90).fill(darkMaroon);
+    doc.rect(435, 44, 114, 90).strokeColor(goldColor).lineWidth(1).stroke();
     
+    const isWholesale = (bill.bill_type || 'retail').toLowerCase() === 'wholesale';
+    const invoiceTitle = isWholesale ? 'WHOLESALE INVOICE' : 'RETAIL INVOICE';
+    const invoiceTitleGu = isWholesale ? 'જથ્થાબંધ બિલ' : 'છૂટક બિલ';
+
     doc.fillColor('#FDE68A')
-       .fontSize(12)
+       .fontSize(10)
        .font('Helvetica-Bold')
-       .text('RETAIL INVOICE', 440, 58, { width: 104, align: 'center' });
+       .text(invoiceTitle, 440, 52, { width: 104, align: 'center' });
+
+    if (hasGujaratiFont) {
+      doc.font('NotoGujarati')
+         .fontSize(8)
+         .fillColor('#FEF3C7')
+         .text(invoiceTitleGu, 440, 66, { width: 104, align: 'center' });
+    }
 
     doc.fillColor('#FFFFFF')
-       .fontSize(11)
+       .fontSize(10.5)
        .font('Helvetica-Bold')
-       .text(bill.bill_number, 440, 84, { width: 104, align: 'center' });
+       .text(bill.bill_number, 440, 83, { width: 104, align: 'center' });
 
     const formattedDate = new Date(bill.created_at || Date.now()).toLocaleDateString('en-IN', {
       day: '2-digit', month: 'short', year: 'numeric'
@@ -134,8 +155,8 @@ function generateCustomerInvoice(bill, settings, filePath, qrBuffer) {
     doc.fontSize(8)
        .fillColor('#D1D5DB')
        .font('Helvetica')
-       .text(`${formattedDate}`, 440, 102, { width: 104, align: 'center' })
-       .text(`${formattedTime}`, 440, 114, { width: 104, align: 'center' });
+       .text(`${formattedDate}`, 440, 101, { width: 104, align: 'center' })
+       .text(`${formattedTime}`, 440, 113, { width: 104, align: 'center' });
 
     // 2. Customer & Cashier Section
     const metaY = 152;
@@ -191,7 +212,7 @@ function generateCustomerInvoice(bill, settings, filePath, qrBuffer) {
     doc.text('Item Description (Sweet Name)', colName, tableTop + 7);
     doc.text('Quantity / Unit', colQty, tableTop + 7, { align: 'right', width: 75 });
     doc.text('Rate', colRate, tableTop + 7, { align: 'right', width: 70 });
-    doc.text('Amount (₹)', colAmount, tableTop + 7, { align: 'right', width: 65 });
+    doc.text('Amount (Rs.)', colAmount, tableTop + 7, { align: 'right', width: 65 });
 
     let currentY = tableTop + 24;
     const items = bill.items || [];
@@ -230,12 +251,12 @@ function generateCustomerInvoice(bill, settings, filePath, qrBuffer) {
       doc.font('Helvetica')
          .text(qtyStr, colQty, currentY + 6, { align: 'right', width: 75 });
 
-      // Rate
-      const rateStr = `₹${parseFloat(item.unit_price).toFixed(2)}/${item.unit}`;
+      // Rate (formatted as Rs. without font glyph corruption)
+      const rateStr = `Rs. ${parseFloat(item.unit_price).toFixed(2)}/${item.unit}`;
       doc.text(rateStr, colRate, currentY + 6, { align: 'right', width: 70 });
 
       // Amount
-      const amountStr = `₹${parseFloat(item.line_total).toFixed(2)}`;
+      const amountStr = `Rs. ${parseFloat(item.line_total).toFixed(2)}`;
       doc.font('Helvetica-Bold')
          .text(amountStr, colAmount, currentY + 6, { align: 'right', width: 65 });
 
@@ -254,7 +275,7 @@ function generateCustomerInvoice(bill, settings, filePath, qrBuffer) {
     doc.fontSize(9).font('Helvetica').fillColor('#4B5563');
     doc.text('Subtotal:', summaryX + 15, currentY + 12);
     doc.font('Helvetica-Bold').fillColor(textBrown)
-       .text(`₹${parseFloat(bill.subtotal).toFixed(2)}`, summaryX + 100, currentY + 12, { align: 'right', width: 105 });
+       .text(`Rs. ${parseFloat(bill.subtotal).toFixed(2)}`, summaryX + 100, currentY + 12, { align: 'right', width: 105 });
 
     if (bill.discount_amount > 0) {
       doc.fontSize(9).font('Helvetica').fillColor('#DC2626');
@@ -263,7 +284,7 @@ function generateCustomerInvoice(bill, settings, filePath, qrBuffer) {
         : 'Discount:';
       doc.text(discLabel, summaryX + 15, currentY + 28);
       doc.font('Helvetica-Bold')
-         .text(`- ₹${parseFloat(bill.discount_amount).toFixed(2)}`, summaryX + 100, currentY + 28, { align: 'right', width: 105 });
+         .text(`- Rs. ${parseFloat(bill.discount_amount).toFixed(2)}`, summaryX + 100, currentY + 28, { align: 'right', width: 105 });
     }
 
     // Final Total Bar
@@ -274,9 +295,9 @@ function generateCustomerInvoice(bill, settings, filePath, qrBuffer) {
        .text('NET TOTAL:', summaryX + 15, currentY + 57);
 
     doc.fillColor('#FFFFFF')
-       .fontSize(14)
+       .fontSize(13)
        .font('Helvetica-Bold')
-       .text(`₹${parseFloat(bill.final_amount).toFixed(2)}`, summaryX + 85, currentY + 55, { align: 'right', width: 130 });
+       .text(`Rs. ${parseFloat(bill.final_amount).toFixed(2)}`, summaryX + 85, currentY + 55, { align: 'right', width: 130 });
 
     // 5. Left bottom area: QR Code + Thank you message
     if (qrBuffer) {
@@ -353,10 +374,19 @@ function generateThermalReceipt(bill, settings, filePath, qrBuffer) {
        .fillColor('#000000')
        .text(settings.shop_name || "SMN SWEET'S", margin, margin + 4, { align: 'center', width: usableWidth });
 
-    doc.font('Helvetica')
-       .fontSize(7.5)
-       .text(settings.shop_address || 'Ahmedabad, Gujarat', margin, doc.y, { align: 'center', width: usableWidth })
-       .text(`Tel: ${settings.shop_mobile || ''}`, margin, doc.y, { align: 'center', width: usableWidth });
+    if (hasGujaratiFont) {
+      doc.font('NotoGujarati')
+         .fontSize(7)
+         .text(settings.shop_address || 'Ahmedabad, Gujarat', margin, doc.y, { align: 'center', width: usableWidth });
+      doc.font('Helvetica')
+         .fontSize(7.5)
+         .text(`Tel: ${settings.shop_mobile || ''}`, margin, doc.y, { align: 'center', width: usableWidth });
+    } else {
+      doc.font('Helvetica')
+         .fontSize(7.5)
+         .text(settings.shop_address || 'Ahmedabad, Gujarat', margin, doc.y, { align: 'center', width: usableWidth })
+         .text(`Tel: ${settings.shop_mobile || ''}`, margin, doc.y, { align: 'center', width: usableWidth });
+    }
 
     doc.text('----------------------------------------------------', margin, doc.y + 2, { align: 'center', width: usableWidth });
 
@@ -376,6 +406,13 @@ function generateThermalReceipt(bill, settings, filePath, qrBuffer) {
       doc.text(`Mobile: +91 ${bill.customer_mobile_snapshot}`, margin, doc.y);
     }
 
+    const isWholesale = (bill.bill_type || 'retail').toLowerCase() === 'wholesale';
+    const receiptTypeTitle = isWholesale ? 'WHOLESALE INVOICE' : 'RETAIL INVOICE';
+
+    doc.font('Helvetica-Bold')
+       .fontSize(8.5)
+       .text(receiptTypeTitle, margin, doc.y + 2, { align: 'center', width: usableWidth });
+
     doc.text('----------------------------------------------------', margin, doc.y + 2, { align: 'center', width: usableWidth });
 
     // Item Header
@@ -383,7 +420,7 @@ function generateThermalReceipt(bill, settings, filePath, qrBuffer) {
        .fontSize(7.5);
     doc.text('Item', margin, doc.y + 2);
     doc.text('Qty', margin + (usableWidth * 0.45), doc.y - 9, { width: usableWidth * 0.25, align: 'right' });
-    doc.text('Amt (₹)', margin + (usableWidth * 0.70), doc.y - 9, { width: usableWidth * 0.30, align: 'right' });
+    doc.text('Amt (Rs.)', margin + (usableWidth * 0.70), doc.y - 9, { width: usableWidth * 0.30, align: 'right' });
 
     doc.text('----------------------------------------------------', margin, doc.y + 2, { align: 'center', width: usableWidth });
 
@@ -402,7 +439,7 @@ function generateThermalReceipt(bill, settings, filePath, qrBuffer) {
 
       doc.text(qtyStr, margin + (usableWidth * 0.45), currentY, { width: usableWidth * 0.25, align: 'right' });
       doc.font('Helvetica-Bold')
-         .text(`₹${parseFloat(item.line_total).toFixed(2)}`, margin + (usableWidth * 0.70), currentY, { width: usableWidth * 0.30, align: 'right' });
+         .text(`Rs. ${parseFloat(item.line_total).toFixed(2)}`, margin + (usableWidth * 0.70), currentY, { width: usableWidth * 0.30, align: 'right' });
     });
 
     doc.text('----------------------------------------------------', margin, doc.y + 4, { align: 'center', width: usableWidth });
@@ -411,17 +448,17 @@ function generateThermalReceipt(bill, settings, filePath, qrBuffer) {
     doc.font('Helvetica')
        .fontSize(8)
        .text('Subtotal:', margin, doc.y + 2);
-    doc.text(`₹${parseFloat(bill.subtotal).toFixed(2)}`, margin + (usableWidth * 0.5), doc.y - 9, { width: usableWidth * 0.5, align: 'right' });
+    doc.text(`Rs. ${parseFloat(bill.subtotal).toFixed(2)}`, margin + (usableWidth * 0.5), doc.y - 9, { width: usableWidth * 0.5, align: 'right' });
 
     if (bill.discount_amount > 0) {
       doc.text('Discount:', margin, doc.y + 2);
-      doc.text(`- ₹${parseFloat(bill.discount_amount).toFixed(2)}`, margin + (usableWidth * 0.5), doc.y - 9, { width: usableWidth * 0.5, align: 'right' });
+      doc.text(`- Rs. ${parseFloat(bill.discount_amount).toFixed(2)}`, margin + (usableWidth * 0.5), doc.y - 9, { width: usableWidth * 0.5, align: 'right' });
     }
 
     doc.font('Helvetica-Bold')
        .fontSize(10)
        .text('NET TOTAL:', margin, doc.y + 4);
-    doc.text(`₹${parseFloat(bill.final_amount).toFixed(2)}`, margin + (usableWidth * 0.5), doc.y - 12, { width: usableWidth * 0.5, align: 'right' });
+    doc.text(`Rs. ${parseFloat(bill.final_amount).toFixed(2)}`, margin + (usableWidth * 0.5), doc.y - 12, { width: usableWidth * 0.5, align: 'right' });
 
     doc.fontSize(7.5)
        .font('Helvetica')

@@ -77,6 +77,7 @@ export interface Bill {
   discount_amount: number;
   final_amount: number;
   payment_method: PaymentMethod;
+  bill_type?: 'retail' | 'wholesale';
   split_details?: string | null;
   payment_status: 'paid' | 'pending';
   status: 'completed' | 'cancelled';

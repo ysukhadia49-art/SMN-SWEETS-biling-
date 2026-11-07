@@ -61,6 +61,7 @@ export const BillingView: React.FC<BillingViewProps> = ({
   const [showDiscountModal, setShowDiscountModal] = useState(false);
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
+  const [billType, setBillType] = useState<'retail' | 'wholesale'>('retail');
   const [splitCash, setSplitCash] = useState<number>(0);
   const [splitUPI, setSplitUPI] = useState<number>(0);
   const [showSplitModal, setShowSplitModal] = useState(false);
@@ -347,6 +348,7 @@ export const BillingView: React.FC<BillingViewProps> = ({
         discount_type: discountType,
         discount_value: discountValue,
         payment_method: paymentMethod,
+        bill_type: billType,
         split_details: paymentMethod === 'split' ? { cash: splitCash, upi: splitUPI } : null,
         verification_type: 'manually_confirmed',
         utr: refCode
@@ -360,6 +362,7 @@ export const BillingView: React.FC<BillingViewProps> = ({
         setCustomerSearch('');
         setDiscountValue(0);
         setPaymentMethod('cash');
+        setBillType('retail');
         setUtrInput('');
         setCardAuthCode('');
         setCashTendered('');
@@ -463,6 +466,52 @@ export const BillingView: React.FC<BillingViewProps> = ({
 
       {/* RIGHT SIDE: Customer Info, Cart Items, Pricing & Payments */}
       <div className="w-full md:w-96 lg:w-[420px] flex flex-col bg-white overflow-hidden shadow-lg border-l border-smn-beige-dark">
+        {/* Invoice Category Selector: Retail Bill vs Wholesale Bill */}
+        <div className="p-3 bg-gradient-to-r from-smn-cream via-white to-smn-cream border-b border-smn-beige-dark space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-smn-maroon flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-smn-gold-accent" />
+              <span>Bill Type / બિલ પ્રકાર</span>
+            </span>
+            <div className="flex items-center gap-1 bg-smn-beige/70 p-0.5 rounded-lg border border-smn-beige-dark">
+              <button
+                type="button"
+                onClick={() => setBillType('retail')}
+                className={`px-2.5 py-1 rounded-md text-[10.5px] font-bold transition-all ${
+                  billType === 'retail'
+                    ? 'bg-smn-maroon text-white shadow-sm'
+                    : 'text-gray-600 hover:text-smn-maroon'
+                }`}
+              >
+                Retail (છૂટક)
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillType('wholesale')}
+                className={`px-2.5 py-1 rounded-md text-[10.5px] font-bold transition-all ${
+                  billType === 'wholesale'
+                    ? 'bg-amber-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-amber-700'
+                }`}
+              >
+                Wholesale (જથ્થાબંધ)
+              </button>
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 text-xs font-semibold text-smn-brown cursor-pointer select-none pt-0.5">
+            <input
+              type="checkbox"
+              checked={billType === 'wholesale'}
+              onChange={(e) => setBillType(e.target.checked ? 'wholesale' : 'retail')}
+              className="w-4 h-4 text-amber-600 rounded border-gray-300 focus:ring-amber-500 accent-amber-600 cursor-pointer"
+            />
+            <span className={billType === 'wholesale' ? 'text-amber-800 font-bold' : 'text-gray-700'}>
+              {billType === 'wholesale' ? '✓ Wholesale Bill Selected (જથ્થાબંધ બિલ)' : 'Check for Wholesale Bill (જથ્થાબંધ બિલ)'}
+            </span>
+          </label>
+        </div>
+
         {/* Customer Header */}
         <div className="p-3 bg-white border-b border-smn-beige-dark space-y-2">
           <div className="flex items-center justify-between">

@@ -121,6 +121,7 @@ function initSchema() {
       pdf_path TEXT,
       invoice_token TEXT UNIQUE,
       sync_status TEXT DEFAULT 'saved_locally',
+      bill_type TEXT DEFAULT 'retail' CHECK(bill_type IN ('retail', 'wholesale')),
       created_at TEXT DEFAULT (datetime('now', 'localtime')),
       FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
     );
@@ -329,6 +330,9 @@ function runMigrations() {
     }
     if (!colNames.includes('sync_status')) {
       db.exec("ALTER TABLE bills ADD COLUMN sync_status TEXT DEFAULT 'saved_locally';");
+    }
+    if (!colNames.includes('bill_type')) {
+      db.exec("ALTER TABLE bills ADD COLUMN bill_type TEXT DEFAULT 'retail';");
     }
   } catch (err) {
     console.error('[DB] Migration error on bills table:', err);

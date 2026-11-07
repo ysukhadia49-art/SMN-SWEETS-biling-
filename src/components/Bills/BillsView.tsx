@@ -178,7 +178,18 @@ export const BillsView: React.FC<BillsViewProps> = ({
                       className={`hover:bg-amber-50/40 transition-colors ${isCancelled ? 'bg-gray-50/60 opacity-70' : ''}`}
                     >
                       <td className="p-3.5 pl-6 font-mono font-bold text-smn-maroon">
-                        {bill.bill_number}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <span>{bill.bill_number}</span>
+                          {bill.bill_type === 'wholesale' ? (
+                            <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide bg-amber-100 text-amber-900 border border-amber-300 self-start sm:self-auto">
+                              Wholesale (જથ્થાબંધ)
+                            </span>
+                          ) : (
+                            <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-medium uppercase tracking-wide bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
+                              Retail (છૂટક)
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-3.5 text-gray-600">
                         {new Date(bill.created_at).toLocaleDateString('en-IN')}{' '}
